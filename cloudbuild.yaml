@@ -1,0 +1,22 @@
+steps:
+  # Step 1: Build the Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/pratham-gcp-lab/pratham-flask-app:latest', '.']
+    id: 'build-image'
+
+  # Step 2: Push the Docker image to Google Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/pratham-gcp-lab/pratham-flask-app:latest']
+    id: 'push-image'
+
+  # Step 3: Deploy the container to the GCE VM using gcloud compute ssh
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gcloud compute ssh prathamparekh16@pratham-web-server --zone=us-central1-a --project=pratham-gcp-lab --strict-host-key-checking=no --command="docker stop klt-pratham-flask-app-ccbx || true && docker rm klt-pratham-flask-app-ccbx || true && docker pull gcr.io/pratham-gcp-lab/pratham-flask-app:latest && docker run -d --name klt-pratham-flask-app-ccbx -p 5000:5000 gcr.io/pratham-gcp-lab/pratham-flask-app:latest"
+    id: 'deploy-to-vm'
+
+# Timeout for the build (default is 10 minutes, increasing to 20 minutes to be safe)
+timeout: 1200s
